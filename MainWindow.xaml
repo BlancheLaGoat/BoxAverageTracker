@@ -1,0 +1,219 @@
+<Window x:Class="BoxAverageTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BoxAverageTracker"
+        mc:Ignorable="d"
+        x:Name="BoxAverageTrackerWindow"
+        Title="Box Average Tracker" Height="{Binding Path=TotalHeight, Mode=TwoWay}" Width="{Binding Path=TotalWidth, Mode=TwoWay}"
+        Topmost="True" MouseDown="Window_MouseDown" Background="Black"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        ResizeMode="CanResize"
+        UseLayoutRounding="True">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="10" />
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+		<BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+		<ContextMenu x:Key="MainMenu">
+			<MenuItem Header="Setup finished" Click="ToggleSetupFinished" IsChecked="{Binding SetupFinished}" IsCheckable="True"/>
+			<MenuItem Header="Sounds enabled" Click="ToggleSoundsEnabled" IsChecked="{Binding SoundsEnabled}" IsCheckable="True"/>
+            <MenuItem Header="Auto display weapons" Click="AutoDisplayClick" IsChecked="{Binding AutoDisplay}" IsCheckable="True"/>
+			<MenuItem Header="Current box hits" Click="ToggleShowCurrentBoxHits" IsChecked="{Binding ShowCurrentBoxHits}" IsCheckable="True"/>
+			<MenuItem Header="Current trade hits" Click="ToggleShowCurrentTradeHits" IsChecked="{Binding ShowCurrentTradeHits}" IsCheckable="True"/>
+			<MenuItem Header="Total trades" Click="ToggleShowTotalTradeCount" IsChecked="{Binding ShowTotalTradeCount}" IsCheckable="True"/>
+			<MenuItem Header="Trades stats">
+				<MenuItem Header="Worst trades" Click="ToggleShowWorstTrades" IsChecked="{Binding ShowWorstTrades}" IsCheckable="True"/>
+				<MenuItem Header="Best trades" Click="ToggleShowBestTrades" IsChecked="{Binding ShowBestTrades}" IsCheckable="True"/>
+				<MenuItem StaysOpenOnClick="True">
+					<MenuItem.Header>
+						<StackPanel Orientation="Horizontal" Width="200">
+							<TextBlock Text="Nb trades : " VerticalAlignment="Center"/>
+							<TextBlock Text="{Binding TradesDisplayCount}" VerticalAlignment="Center" MinWidth="20"/>
+							<Slider Minimum="1" Maximum="50" Width="120" VerticalAlignment="Center" Margin="5,0,0,0"
+									Value="{Binding TradesDisplayCount, Mode=TwoWay}"
+									IsSnapToTickEnabled="True" TickFrequency="1"
+									ValueChanged="TradesDisplaySlider_Changed"/>
+						</StackPanel>
+					</MenuItem.Header>
+				</MenuItem>
+			</MenuItem>
+			<MenuItem Header="Set font...">
+				<MenuItem Header="Box hits font..." Click="SetBoxHitsFont" IsCheckable="False"/>
+				<MenuItem Header="Current box font..." Click="SetCurrentBoxFont" IsCheckable="False"/>
+				<MenuItem Header="Current trade font..." Click="SetCurrentTradeFont" IsCheckable="False"/>
+				<MenuItem Header="Total trades font..." Click="SetTotalTradeFont" IsCheckable="False"/>
+				<MenuItem Header="Average font..." Click="SetAverageTextFont" IsCheckable="False"/>
+			</MenuItem>
+			<MenuItem Header="Counting..." Click="ShowCounting" IsCheckable="False"/>
+			<MenuItem Header="Trading..." Click="ShowTrading" IsCheckable="False"/>
+			<MenuItem Header="Load game" Click="LoadGame" IsCheckable="False"/>
+            <MenuItem Header="Save game" Click="SaveGame" IsCheckable="False"/>
+            <MenuItem Header="Export stats" Click="RightClick_Export" IsCheckable="False"/>
+            <MenuItem Header="About" Click="AboutClick" IsCheckable="False"/>
+            <MenuItem Header="Exit" Click="RightClick_Exit" IsCheckable="False"/>
+        </ContextMenu>
+    </Window.Resources>
+
+    <Viewbox Margin="5">
+        <StackPanel x:Name="ListMaps">
+			<StackPanel Orientation="Vertical">
+
+				<StackPanel Orientation="Vertical">
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="Box hits : "
+								   FontFamily="{Binding BoxHitsFontFamily}"
+								   FontSize="{Binding BoxHitsSize}"
+								   Foreground="{Binding BoxHitsForeground}"
+								   FontWeight="{Binding BoxHitsFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding BoxHitsFontStyle, ElementName=BoxAverageTrackerWindow}"/>
+
+						<TextBlock Text="{Binding BoxHitsCount}"
+								   FontFamily="{Binding BoxHitsFontFamily}"
+								   FontSize="{Binding BoxHitsSize}"
+								   Foreground="{Binding BoxHitsForeground}"
+								   FontWeight="{Binding BoxHitsFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding BoxHitsFontStyle, ElementName=BoxAverageTrackerWindow}"/>
+						
+					<TextBlock Text="        "
+		                       FontFamily="{Binding BoxHitsFontFamily}"
+		                       FontSize="{Binding BoxHitsSize}"
+		                       Foreground="{Binding BoxHitsForeground}"
+		                       FontWeight="{Binding BoxHitsFontWeight, ElementName=BoxAverageTrackerWindow}"
+		                       FontStyle="{Binding BoxHitsFontStyle, ElementName=BoxAverageTrackerWindow}"/>
+					<TextBlock Text="{Binding GameConnectedString}"
+                               Foreground="Orange"
+                               FontSize="15"/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text=" Current box : "
+								   FontFamily="{Binding CurrentBoxFontFamily}"
+								   FontSize="{Binding CurrentBoxSize}"
+								   Foreground="{Binding CurrentBoxForeground}"
+								   FontWeight="{Binding CurrentBoxFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding CurrentBoxFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowCurrentBoxHits, Converter={StaticResource BoolToVis}}"/>
+
+						<TextBlock Text="{Binding CurrentBoxHitsCount}"
+								   FontFamily="{Binding CurrentBoxFontFamily}"
+								   FontSize="{Binding CurrentBoxSize}"
+								   Foreground="{Binding CurrentBoxForeground}"
+								   FontWeight="{Binding CurrentBoxFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding CurrentBoxFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowCurrentBoxHits, Converter={StaticResource BoolToVis}}"/>
+						
+						<TextBlock Text="{Binding LastBoxHitsCount, StringFormat=' ({0})'}"
+								   FontFamily="{Binding CurrentBoxFontFamily}"
+								   FontSize="{Binding CurrentBoxSize}"
+								   Foreground="{Binding CurrentBoxForeground}"
+								   FontWeight="{Binding CurrentBoxFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding CurrentBoxFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowCurrentBoxHits, Converter={StaticResource BoolToVis}}"/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text=" Current trade : "
+								   FontFamily="{Binding CurrentTradeFontFamily}"
+								   FontSize="{Binding CurrentTradeSize}"
+								   Foreground="{Binding CurrentTradeForeground}"
+								   FontWeight="{Binding CurrentTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding CurrentTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowCurrentTradeHits, Converter={StaticResource BoolToVis}}"/>
+
+						<TextBlock Text="{Binding CurrentTradeHitsCount}"
+								   FontFamily="{Binding CurrentTradeFontFamily}"
+								   FontSize="{Binding CurrentTradeSize}"
+								   Foreground="{Binding CurrentTradeForeground}"
+								   FontWeight="{Binding CurrentTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding CurrentTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowCurrentTradeHits, Converter={StaticResource BoolToVis}}"/>
+						
+						<TextBlock Text="{Binding LastTradeHitsCount, StringFormat=' ({0})'}"
+								   FontFamily="{Binding CurrentTradeFontFamily}"
+								   FontSize="{Binding CurrentTradeSize}"
+								   Foreground="{Binding CurrentTradeForeground}"
+								   FontWeight="{Binding CurrentTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding CurrentTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowCurrentTradeHits, Converter={StaticResource BoolToVis}}"/>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text=" Total trades : "
+								   FontFamily="{Binding TotalTradeFontFamily}"
+								   FontSize="{Binding TotalTradeSize}"
+								   Foreground="{Binding TotalTradeForeground}"
+								   FontWeight="{Binding TotalTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding TotalTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowTotalTradeCount, Converter={StaticResource BoolToVis}}"/>
+
+						<TextBlock Text="{Binding TotalTradeCount}"
+								   FontFamily="{Binding TotalTradeFontFamily}"
+								   FontSize="{Binding TotalTradeSize}"
+								   Foreground="{Binding TotalTradeForeground}"
+								   FontWeight="{Binding TotalTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+								   FontStyle="{Binding TotalTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+								   Visibility="{Binding ShowTotalTradeCount, Converter={StaticResource BoolToVis}}"/>
+					</StackPanel>
+				</StackPanel>
+
+				<TextBlock Text="{Binding WorstTradesString}"
+						   FontFamily="{Binding TotalTradeFontFamily}"
+						   FontSize="{Binding TotalTradeSize}"
+						   Foreground="{Binding TotalTradeForeground}"
+						   FontWeight="{Binding TotalTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+						   FontStyle="{Binding TotalTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+						   Visibility="{Binding ShowWorstTrades, Converter={StaticResource BoolToVis}}"/>
+
+				<TextBlock Text="{Binding BestTradesString}"
+						   FontFamily="{Binding TotalTradeFontFamily}"
+						   FontSize="{Binding TotalTradeSize}"
+						   Foreground="{Binding TotalTradeForeground}"
+						   FontWeight="{Binding TotalTradeFontWeight, ElementName=BoxAverageTrackerWindow}"
+						   FontStyle="{Binding TotalTradeFontStyle, ElementName=BoxAverageTrackerWindow}"
+						   Visibility="{Binding ShowBestTrades, Converter={StaticResource BoolToVis}}"/>
+
+			</StackPanel>
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding WeaponAverages, UpdateSourceTrigger=PropertyChanged}" VirtualizingPanel.IsVirtualizing="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid HorizontalAlignment="Left" VerticalAlignment="Stretch" VirtualizingPanel.IsVirtualizing="False" Margin="0, 0, 0, 1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Text="{Binding Key}"
+                                           FontFamily="{Binding AverageTextFontFamily, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontSize="{Binding AverageTextSize, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           Foreground="{Binding AverageTextForeground, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontWeight="{Binding AverageTextFontWeight, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontStyle="{Binding AverageTextFontStyle, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" Text=" average : "
+                                           FontFamily="{Binding AverageTextFontFamily, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontSize="{Binding AverageTextSize, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           Foreground="{Binding AverageTextForeground, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontWeight="{Binding AverageTextFontWeight, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontStyle="{Binding AverageTextFontStyle, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Top" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                           FontFamily="{Binding AverageTextFontFamily, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontSize="{Binding AverageTextSize, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           Foreground="{Binding AverageTextForeground, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontWeight="{Binding AverageTextFontWeight, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           FontStyle="{Binding AverageTextFontStyle, ElementName=BoxAverageTrackerWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </Viewbox>
+</Window>
