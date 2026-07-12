@@ -1,20 +1,16 @@
 # BoxAverageTracker
 
-Tracker de box hits pour Black Ops 1 Zombies. Lit la mémoire du jeu en temps réel pour compter automatiquement les hits de boîte et suivre les trades.
-
 ---
 
 ## Installation
 
-1. Télécharge et extrais le dossier
-2. Lance `BoxAverageTracker.exe`
-3. Lance ta partie — le tracker se connecte automatiquement au jeu
+Prenez soit le .exe si vous ne voulez pas les sons, sois vous voulez les sons, alors vous prenez le .zip puis suivez ce chemin "BoxAverageTracker-latest\bin\Release" pour avoir le dossier "sounds". 
 
 ---
 
 ## Utilisation
 
-Fais un **clic droit** sur la fenêtre pour accéder au menu.
+Faites un **clic droit** sur la fenêtre pour accéder au menu.
 
 **Options principales :**
 - **Setup finished** — à cocher une fois que le setup de ta game est terminé, les trades et averages commencent à être comptés
@@ -29,8 +25,8 @@ Fais un **clic droit** sur la fenêtre pour accéder au menu.
 
 **Sons :**
 - **Sounds enabled** — active ou désactive les sons de trade
-- Les sons se jouent quand tu récupères une arme cochée dans **Trading**
-- Place tes fichiers `.wav` dans les dossiers correspondants dans `sounds/`
+- Les sons se jouent quand vous récupérez une arme cochée dans **Trading**
+- Placez vos fichiers `.wav` dans les dossiers correspondants dans `sounds/`
 
 ---
 
@@ -49,7 +45,7 @@ sounds/
   trade_100+/    → 101+ hits
 ```
 
-Tu peux mettre autant de `.wav` que tu veux dans chaque dossier, un sera choisi au hasard.
+Vous pouvez mettre autant de `.wav` que tu veux dans chaque dossier, un sera choisi au hasard.
 
 ---
 
