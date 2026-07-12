@@ -10,32 +10,29 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest   # WPF ne peut être compilé que sur Windows
+    runs-on: windows-latest   # WPF .NET Framework ne peut être compilé que sur Windows
 
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
 
-      - name: Installer le SDK .NET 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - name: Configurer MSBuild
+        uses: microsoft/setup-msbuild@v2
 
-      - name: Publier l'application (.exe autonome, sans dépendance .NET à installer)
-        run: >
-          dotnet publish BoxAverageTracker.csproj
-          -c Release
-          -r win-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -o publish
+      - name: Configurer NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restaurer les packages NuGet
+        run: nuget restore BoxAverageTracker.sln
+
+      - name: Compiler l'application (Release)
+        run: msbuild BoxAverageTracker.sln /p:Configuration=Release /p:Platform="Any CPU"
 
       - name: Mettre le .exe à disposition en téléchargement (artifact interne)
         uses: actions/upload-artifact@v4
         with:
           name: BoxAverageTracker-windows
-          path: publish/BoxAverageTracker.exe
+          path: bin/Release/BoxAverageTracker.exe
 
       - name: Publier/mettre à jour la Release publique "latest"
         uses: softprops/action-gh-release@v2
@@ -43,4 +40,4 @@ jobs:
           tag_name: latest
           name: "Dernière version"
           body: "Compilation automatique la plus récente. Lien direct ci-dessous."
-          files: publish/BoxAverageTracker.exe
+          files: bin/Release/BoxAverageTracker.exe
