@@ -1703,7 +1703,7 @@ namespace BoxAverageTracker
             if (countWeaponsWindow != null) return;
 
             var mapWeapons = GetWeaponsDictionary() ?? new Dictionary<int, string>();
-            List<string> weapons = mapWeapons.Values.ToList();
+            List<string> weapons = mapWeapons.Values.Distinct().ToList();
             if (SelectedMap != "Nacht Der Untoten" && SelectedMap != "Moon" && SelectedMap != "MainMenu")
             {
                 weapons.Add("Teddy bear");
@@ -1807,7 +1807,7 @@ namespace BoxAverageTracker
             }
             var top = _worstTrades.OrderByDescending(x => x).Take(TradesDisplayCount).ToList();
             var parts = top.Select((v, i) => $"#{i + 1}: {v}");
-            WorstTradesString = " Pires trades : " + string.Join(" | ", parts);
+            WorstTradesString = " Worst trades : " + string.Join(" | ", parts);
         }
 
         private void DisplayWorstTrades()

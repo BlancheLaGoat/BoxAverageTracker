@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\galax\\Desktop\\bo1\\BoxAverageTracker\\",
+  "WorkspaceRootPath": "C:\\Users\\galax\\Desktop\\bo1\\tools\\boxaveragegithub123\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A4E40FAD-D287-4ABA-A629-D61FF5DB108A}|BoxAverageTracker.csproj|c:\\users\\galax\\desktop\\bo1\\boxaveragetracker\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{A4E40FAD-D287-4ABA-A629-D61FF5DB108A}|BoxAverageTracker.csproj|c:\\users\\galax\\desktop\\bo1\\tools\\boxaveragegithub123\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A4E40FAD-D287-4ABA-A629-D61FF5DB108A}|BoxAverageTracker.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -23,11 +23,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "MainWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\galax\\Desktop\\bo1\\BoxAverageTracker\\MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\galax\\Desktop\\bo1\\tools\\boxaveragegithub123\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\galax\\Desktop\\bo1\\BoxAverageTracker\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\galax\\Desktop\\bo1\\tools\\boxaveragegithub123\\MainWindow.xaml.cs",
               "RelativeToolTip": "MainWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-12T11:38:14.902Z",
               "EditorCaption": ""
@@ -37,9 +37,9 @@
               "DocumentIndex": 1,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\galax\\Downloads\\MainWindow.xaml.cs",
-              "RelativeDocumentMoniker": "..\\..\\..\\Downloads\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\Downloads\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\galax\\Downloads\\MainWindow.xaml.cs",
-              "RelativeToolTip": "..\\..\\..\\Downloads\\MainWindow.xaml.cs",
+              "RelativeToolTip": "..\\..\\..\\..\\Downloads\\MainWindow.xaml.cs",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-12T11:37:53.762Z"
             }
