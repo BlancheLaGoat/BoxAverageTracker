@@ -465,9 +465,30 @@ namespace BoxAverageTracker
             bool isPap = papSet != null && papSet.Contains(changedId);
             if (isPap) return;
 
+            // Son Ray Gun
+            if (SoundsEnabled && string.Equals(weaponName, "Ray Gun", StringComparison.OrdinalIgnoreCase))
+                PlaySpecialWeaponSound("raygun");
+
             // Son de trade pour toutes les armes tradées (seulement si SetupFinished et sons activés)
             if (SetupFinished && SoundsEnabled && m_WeaponsBeingTraded.Any(x => string.Equals(x, weaponName, StringComparison.OrdinalIgnoreCase)))
                 PlayTradeSound(GetCurrentTradeHits());
+        }
+
+        private void PlaySpecialWeaponSound(string folderName)
+        {
+            try
+            {
+                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string folder = Path.Combine(Path.GetDirectoryName(exePath), "sounds", folderName);
+                if (!Directory.Exists(folder)) return;
+                var files = Directory.GetFiles(folder, "*.wav");
+                if (files.Length == 0) return;
+                string chosen = files[_random.Next(files.Length)];
+                var player = new System.Media.SoundPlayer(chosen);
+                player.Load();
+                player.Play();
+            }
+            catch { }
         }
 
         private void PlayTradeSound(int tradeHits)
@@ -1703,7 +1724,7 @@ namespace BoxAverageTracker
             if (countWeaponsWindow != null) return;
 
             var mapWeapons = GetWeaponsDictionary() ?? new Dictionary<int, string>();
-            List<string> weapons = mapWeapons.Values.Distinct().ToList();
+            List<string> weapons = mapWeapons.Values.ToList();
             if (SelectedMap != "Nacht Der Untoten" && SelectedMap != "Moon" && SelectedMap != "MainMenu")
             {
                 weapons.Add("Teddy bear");
@@ -1807,7 +1828,7 @@ namespace BoxAverageTracker
             }
             var top = _worstTrades.OrderByDescending(x => x).Take(TradesDisplayCount).ToList();
             var parts = top.Select((v, i) => $"#{i + 1}: {v}");
-            WorstTradesString = " Worst trades : " + string.Join(" | ", parts);
+            WorstTradesString = " Pires trades : " + string.Join(" | ", parts);
         }
 
         private void DisplayWorstTrades()

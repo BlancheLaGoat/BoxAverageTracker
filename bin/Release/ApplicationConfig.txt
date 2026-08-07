@@ -32,4 +32,4 @@ ShowTotalTradeCount=True
 ShowWorstTrades=False
 TradesDisplayCount=1
 ShowBestTrades=False
-SoundsEnabled=True
+SoundsEnabled=False
