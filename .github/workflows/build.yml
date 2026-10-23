@@ -25,6 +25,18 @@ jobs:
       - name: Restaurer les packages NuGet
         run: nuget restore BoxAverageTracker.sln
 
+      - name: Tamponner le numéro de build (sert à la mise à jour automatique)
+        shell: pwsh
+        run: |
+          $n = "${{ github.run_number }}"
+          $f = "Properties/AssemblyInfo.cs"
+          (Get-Content $f) `
+            -replace 'AssemblyVersion\("1\.0\.0\.0"\)', "AssemblyVersion(`"2.0.$n.0`")" `
+            -replace 'AssemblyFileVersion\("1\.0\.0\.0"\)', "AssemblyFileVersion(`"2.0.$n.0`")" |
+            Set-Content $f -Encoding utf8
+          Set-Content -Path version.txt -Value $n -NoNewline -Encoding ascii
+          Select-String -Path $f -Pattern 'AssemblyVersion|AssemblyFileVersion'
+
       - name: Compiler l'application (Release)
         run: msbuild BoxAverageTracker.sln /p:Configuration=Release /p:Platform="Any CPU"
 
@@ -39,5 +51,7 @@ jobs:
         with:
           tag_name: latest
           name: "Dernière version"
-          body: "Compilation automatique la plus récente. Lien direct ci-dessous."
-          files: bin/Release/BoxAverageTracker.exe
+          body: "Compilation automatique la plus récente (build ${{ github.run_number }}). Lien direct ci-dessous. L'appli se met à jour toute seule à partir de cette version."
+          files: |
+            bin/Release/BoxAverageTracker.exe
+            version.txt

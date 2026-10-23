@@ -121,6 +121,7 @@
     </Compile>
     <Compile Include="BlackOpsLibrary.cs" />
     <Compile Include="CommandHandler.cs" />
+    <Compile Include="Updater.cs" />
     <Compile Include="CountWeapons.xaml.cs">
       <DependentUpon>CountWeapons.xaml</DependentUpon>
     </Compile>

@@ -74,6 +74,8 @@ namespace BoxAverageTracker
         public static DependencyProperty BestTradesStringProperty = DependencyProperty.Register("BestTradesString", typeof(string), typeof(MainWindow), new PropertyMetadata(""));
         public static DependencyProperty ShowBestTradesProperty = DependencyProperty.Register("ShowBestTrades", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, SaveApplicationConfig));
         public static DependencyProperty SoundsEnabledProperty = DependencyProperty.Register("SoundsEnabled", typeof(bool), typeof(MainWindow), new PropertyMetadata(true, SaveApplicationConfig));
+        public static DependencyProperty ShowWeaponPopupProperty = DependencyProperty.Register("ShowWeaponPopup", typeof(bool), typeof(MainWindow), new PropertyMetadata(true, SaveApplicationConfig));
+        public static DependencyProperty WeaponPopupTextProperty = DependencyProperty.Register("WeaponPopupText", typeof(string), typeof(MainWindow), new PropertyMetadata(""));
 
         private CountWeapons countWeaponsWindow = null;
         private TradeWeapons tradeWeaponsWindow = null;
@@ -349,6 +351,21 @@ namespace BoxAverageTracker
             set => Dispatcher.Invoke(() => SetValue(SoundsEnabledProperty, value));
         }
 
+        public bool ShowWeaponPopup
+        {
+            get => Dispatcher.Invoke(() => (bool)GetValue(ShowWeaponPopupProperty));
+            set => Dispatcher.Invoke(() => SetValue(ShowWeaponPopupProperty, value));
+        }
+
+        public string WeaponPopupText
+        {
+            get => Dispatcher.Invoke(() => (string)GetValue(WeaponPopupTextProperty));
+            set => Dispatcher.Invoke(() => SetValue(WeaponPopupTextProperty, value));
+        }
+
+        // Durée d'affichage du popup (en secondes), modifiable dans ApplicationConfig.txt (WeaponPopupSeconds=)
+        private double m_WeaponPopupSeconds = 4.0;
+
         private Dictionary<string, List<int>> m_WeaponsGotten = new Dictionary<string, List<int>>();
         private Dictionary<string, int> m_WeaponsBoxHits = new Dictionary<string, int>();
         private List<string> m_WeaponsToDisplay = new List<string>();
@@ -447,6 +464,9 @@ namespace BoxAverageTracker
         {
             ListMaps.ContextMenu = ContextMenu = (ContextMenu)Resources["MainMenu"];
             LoadApplicationConfig();
+
+            Updater.CleanupPreviousUpdate();
+            _ = Updater.CheckForUpdatesAsync(this, silentIfUpToDate: true);
 
             await UpdateTracking();
         }
@@ -650,6 +670,7 @@ namespace BoxAverageTracker
                                             if (SetupFinished)
                                             {
                                                 m_WeaponsGotten["Teddy bear"].Add(GetBoxHits());
+                                                ShowWeaponPopupFor("Teddy bear");
                                                 mustUpdate = true;
                                             }
 
@@ -1120,6 +1141,7 @@ namespace BoxAverageTracker
                     if (!m_WeaponsToNotCount.Any(x => x == gottenWeapon))
                     {
                         m_WeaponsGotten[gottenWeapon].Add(GetBoxHits());
+                        ShowWeaponPopupFor(gottenWeapon);
                     }
 
                     if (m_WeaponsBeingTraded.Any(x => x == gottenWeapon))
@@ -1532,6 +1554,41 @@ namespace BoxAverageTracker
             if (sender is MenuItem menuItem) SoundsEnabled = menuItem.IsChecked;
         }
 
+        private void ToggleShowWeaponPopup(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem) ShowWeaponPopup = menuItem.IsChecked;
+        }
+
+        /// <summary>
+        /// Affiche brièvement sous les averages : "China Lake  avg 12.50  (x3)".
+        /// Appelé depuis le thread de tracking, donc tout passe par le Dispatcher.
+        /// </summary>
+        private void ShowWeaponPopupFor(string weaponName)
+        {
+            if (!m_WeaponsGotten.TryGetValue(weaponName, out var gotten) || gotten.Count == 0) return;
+
+            int timesGotten = gotten.Count;
+            int hits = m_WeaponsBoxHits.TryGetValue(weaponName, out var h) ? h : 0;
+            float average = (float)hits / timesGotten;
+            string text = $"{weaponName}  avg {average:N2}  (x{timesGotten})";
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!(bool)GetValue(ShowWeaponPopupProperty)) return;
+
+                SetValue(WeaponPopupTextProperty, text);
+
+                double total = Math.Max(1.0, m_WeaponPopupSeconds);
+                var anim = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames();
+                anim.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(1, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.15))));
+                anim.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(1, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(total - 0.5))));
+                anim.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(total))));
+
+                // BeginAnimation remplace l'animation en cours : si on chope 2 armes d'affilée, le popup repart de zéro
+                WeaponPopup.BeginAnimation(OpacityProperty, anim);
+            }));
+        }
+
         private void ToggleShowWorstTrades(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem) ShowWorstTrades = menuItem.IsChecked;
@@ -1544,7 +1601,12 @@ namespace BoxAverageTracker
 
         private void AboutClick(object sender, RoutedEventArgs e)
         {
-            System.Windows.Forms.MessageBox.Show("Version 2.0", "About", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            System.Windows.Forms.MessageBox.Show("Version 2.0 (build " + Updater.LocalBuild + ")", "About", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+        }
+
+        private async void CheckForUpdatesClick(object sender, RoutedEventArgs e)
+        {
+            await Updater.CheckForUpdatesAsync(this, silentIfUpToDate: false);
         }
 
         private void SetAverageTextFont(object sender, RoutedEventArgs e)
@@ -1627,6 +1689,8 @@ namespace BoxAverageTracker
             string showBestTrades = GetConfigValue(fileText, "ShowBestTrades", "False");
             string tradesDisplayCount = GetConfigValue(fileText, "TradesDisplayCount", "3");
             string soundsEnabled = GetConfigValue(fileText, "SoundsEnabled", "True");
+            string showWeaponPopup = GetConfigValue(fileText, "ShowWeaponPopup", "True");
+            string weaponPopupSeconds = GetConfigValue(fileText, "WeaponPopupSeconds", "4");
 
             BoxHitsFontFamily = new System.Windows.Media.FontFamily(boxHitsFont);
             BoxHitsForeground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(boxHitsColor));
@@ -1668,6 +1732,9 @@ namespace BoxAverageTracker
             ShowBestTrades = bool.Parse(showBestTrades);
             TradesDisplayCount = int.Parse(tradesDisplayCount);
             SoundsEnabled = bool.Parse(soundsEnabled);
+            if (double.TryParse(weaponPopupSeconds.Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double secs))
+                m_WeaponPopupSeconds = secs;
+            ShowWeaponPopup = !bool.TryParse(showWeaponPopup, out bool swp) || swp;
         }
 
         private void SaveApplicationConfig()
@@ -1715,6 +1782,8 @@ namespace BoxAverageTracker
             toWrite.WriteLine("TradesDisplayCount=" + TradesDisplayCount);
             toWrite.WriteLine("ShowBestTrades=" + ShowBestTrades);
             toWrite.WriteLine("SoundsEnabled=" + SoundsEnabled);
+            toWrite.WriteLine("ShowWeaponPopup=" + ShowWeaponPopup);
+            toWrite.WriteLine("WeaponPopupSeconds=" + m_WeaponPopupSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             File.WriteAllText(createdFilepath, toWrite.ToString());
         }

@@ -22,11 +22,22 @@ Faites un **clic droit** sur la fenêtre pour accéder au menu.
 - **Current trade hits** — affiche le nombre de hits depuis le début du trade en cours
 - **Total trades** — affiche le nombre de trades effectués
 - **Worst trades / Best trades** — affiche les pires et meilleurs trades de la game, avec un slider pour choisir combien en afficher
+- **Weapon popup** — quand tu choppes une arme dans la box (ou un teddy), affiche quelques secondes sous les averages : `China Lake  avg 12.50  (x3)` (average de l'arme + nombre de fois obtenue). Durée réglable via `WeaponPopupSeconds=` dans `ApplicationConfig.txt` (4 s par défaut)
 
 **Sons :**
 - **Sounds enabled** — active ou désactive les sons de trade
 - Les sons se jouent quand vous récupérez une arme cochée dans **Trading**
 - Placez vos fichiers `.wav` dans les dossiers correspondants dans `sounds/`
+
+---
+
+## Mises à jour automatiques
+
+Au lancement, l'appli vérifie s'il existe une version plus récente sur la Release GitHub **latest**. Si oui, elle te propose de la télécharger, remplace l'exe et se relance toute seule (tes sons et ton `ApplicationConfig.txt` ne sont pas touchés).
+
+- **Check for updates...** dans le menu clic droit pour vérifier à la main
+- **About** affiche le numéro de build actuel
+- Un exe compilé en local dans Visual Studio (build 0) ne se met jamais à jour tout seul
 
 ---
 
