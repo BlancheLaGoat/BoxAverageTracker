@@ -466,6 +466,7 @@ namespace BoxAverageTracker
             LoadApplicationConfig();
 
             Updater.CleanupPreviousUpdate();
+            EnsureSoundFolders();
             _ = Updater.CheckForUpdatesAsync(this, silentIfUpToDate: true);
 
             await UpdateTracking();
@@ -505,6 +506,26 @@ namespace BoxAverageTracker
         private static string GetWeaponSoundFolderName(string weaponName)
         {
             return new string(weaponName.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+        }
+
+        public static string SoundsDirectory =>
+            Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "sounds");
+
+        /// <summary>Dossiers de sons des armes de la box (Teddy bear exclu) : thundergun, raygun, chinalake...</summary>
+        public static IEnumerable<(string Weapon, string Folder)> WeaponSoundFolders =>
+            s_AllWeaponNames.Where(w => w != "Teddy bear").Select(w => (w, GetWeaponSoundFolderName(w)));
+
+        public static IEnumerable<string> TradeSoundFolders => s_TradeSoundRanges.Select(r => r.Folder);
+
+        /// <summary>Crée au lancement les dossiers de sons manquants (un par arme de la box + les dossiers de trade).</summary>
+        private static void EnsureSoundFolders()
+        {
+            try
+            {
+                foreach (var folder in TradeSoundFolders.Concat(WeaponSoundFolders.Select(x => x.Folder)))
+                    Directory.CreateDirectory(Path.Combine(SoundsDirectory, folder));
+            }
+            catch { }
         }
 
         /// <returns>true si un son a été joué</returns>
@@ -1617,6 +1638,11 @@ namespace BoxAverageTracker
             System.Windows.Forms.MessageBox.Show("Version 2.0 (build " + Updater.LocalBuild + ")", "About", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
         }
 
+        private void ConvertSoundsClick(object sender, RoutedEventArgs e)
+        {
+            new ConvertSoundsWindow { Owner = this, Topmost = true }.ShowDialog();
+        }
+
         private async void CheckForUpdatesClick(object sender, RoutedEventArgs e)
         {
             await Updater.CheckForUpdatesAsync(this, silentIfUpToDate: false);
@@ -1948,4 +1974,4 @@ namespace BoxAverageTracker
             WeaponAverages = weaponAverages;
         }
     }
-}
+}

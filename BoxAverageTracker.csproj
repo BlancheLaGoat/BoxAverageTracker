@@ -78,6 +78,10 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NAudio, Version=1.10.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -122,6 +126,8 @@
     <Compile Include="BlackOpsLibrary.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="Updater.cs" />
+    <Compile Include="SoundConverter.cs" />
+    <Compile Include="ConvertSoundsWindow.cs" />
     <Compile Include="CountWeapons.xaml.cs">
       <DependentUpon>CountWeapons.xaml</DependentUpon>
     </Compile>
@@ -147,6 +153,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="packages\NAudio.1.10.0\lib\net35\NAudio.dll">
+      <LogicalName>NAudio.dll</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

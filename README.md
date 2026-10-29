@@ -41,6 +41,14 @@ Au lancement, l'appli vérifie s'il existe une version plus récente sur la Rele
 
 ---
 
+## Convertir des sons
+
+Clic droit → **Convert sounds...** : choisis l'arme (ou un dossier de trade), puis glisse tes fichiers dans la fenêtre (ou « Choisir des fichiers... »). Ils sont convertis en `.wav` compatible et rangés directement dans le bon dossier.
+
+Formats acceptés : tout ce que Windows sait lire — mp3, mp4, m4a, aac, wav, wma, mov... (une vidéo est acceptée, seul le son est gardé).
+
+---
+
 ## Dossiers de sons
 
 Les sons sont dans `sounds/` à côté de l'exe, organisés par nombre de trade hits :
@@ -60,7 +68,7 @@ Vous pouvez mettre autant de `.wav` que tu veux dans chaque dossier, un sera cho
 
 ### Sons par arme
 
-Tu peux aussi donner un son à une arme précise : crée un dossier `sounds/<nom de l'arme>/` (en minuscules, sans espaces ni caractères spéciaux) et mets-y des `.wav`. Quand tu choppes cette arme, son son passe **en priorité** sur le son de trade.
+Tu peux aussi donner un son à une arme précise : mets des `.wav` dans le dossier `sounds/<nom de l'arme>/` (en minuscules, sans espaces ni caractères spéciaux). Tous les dossiers (armes de la box + trades) sont **créés automatiquement** au lancement de l'appli. Quand tu choppes cette arme, son son passe **en priorité** sur le son de trade.
 
 ```
 sounds/
