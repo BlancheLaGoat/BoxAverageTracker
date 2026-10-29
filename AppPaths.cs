@@ -60,4 +60,21 @@ namespace BoxAverageTracker
             }
         }
     }
+
+    /// <summary>Journal d'erreurs : %AppData%\BoxAverageTracker\crash.log</summary>
+    public static class CrashLog
+    {
+        public static string Path => System.IO.Path.Combine(AppPaths.DataDirectory, "crash.log");
+
+        public static void Write(string where, Exception ex)
+        {
+            try
+            {
+                Directory.CreateDirectory(AppPaths.DataDirectory);
+                File.AppendAllText(Path,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] build {Updater.LocalBuild} - {where}{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}");
+            }
+            catch { }
+        }
+    }
 }

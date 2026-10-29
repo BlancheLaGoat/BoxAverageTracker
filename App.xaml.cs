@@ -35,6 +35,19 @@ namespace BoxAverageTracker
         {
             base.OnStartup(e);
 
+            // Toute erreur non gérée est écrite dans %AppData%\BoxAverageTracker\crash.log au lieu de fermer l'appli sans rien dire
+            DispatcherUnhandledException += (s, args) =>
+            {
+                CrashLog.Write("UI", args.Exception);
+                MessageBox.Show("BoxAverageTracker hit an error:\n" + args.Exception.Message +
+                                "\n\nDetails saved to:\n" + CrashLog.Path, "BoxAverageTracker", MessageBoxButton.OK, MessageBoxImage.Error);
+                args.Handled = true;
+            };
+            AppDomain.CurrentDomain.UnhandledException += (s, args) => CrashLog.Write("Fatal", args.ExceptionObject as Exception);
+
+            // Crée %AppData%\BoxAverageTracker et récupère l'ancien config/sons AVANT que la fenêtre existe
+            AppPaths.Initialize();
+
             MainWindow = new MainWindow();
         }
     }

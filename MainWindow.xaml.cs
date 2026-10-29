@@ -463,7 +463,6 @@ namespace BoxAverageTracker
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             ListMaps.ContextMenu = ContextMenu = (ContextMenu)Resources["MainMenu"];
-            AppPaths.Initialize();
             LoadApplicationConfig();
 
             Updater.CleanupPreviousUpdate();
@@ -1699,7 +1698,21 @@ namespace BoxAverageTracker
         private void LoadApplicationConfig()
         {
             string filePath = AppPaths.ConfigPath;
-            if (!File.Exists(filePath)) return;
+            if (!File.Exists(filePath)) { m_ConfigLoaded = true; return; }
+
+            try
+            {
+                LoadApplicationConfigFrom(filePath);
+            }
+            catch (Exception ex)
+            {
+                CrashLog.Write("LoadApplicationConfig", ex);
+            }
+            m_ConfigLoaded = true;
+        }
+
+        private void LoadApplicationConfigFrom(string filePath)
+        {
 
             string[] fileText = File.ReadAllLines(filePath);
 
@@ -1790,8 +1803,13 @@ namespace BoxAverageTracker
             ShowWeaponPopup = !bool.TryParse(showWeaponPopup, out bool swp) || swp;
         }
 
+        // Tant que le config n'a pas été chargé, on ne sauvegarde pas : sinon les valeurs par défaut
+        // (poussées par les bindings pendant la création de la fenêtre) écraseraient les réglages.
+        private bool m_ConfigLoaded = false;
+
         private void SaveApplicationConfig()
         {
+            if (!m_ConfigLoaded) return;
             string createdFilepath = AppPaths.ConfigPath;
             var toWrite = new StringWriter();
 
@@ -1838,7 +1856,12 @@ namespace BoxAverageTracker
             toWrite.WriteLine("ShowWeaponPopup=" + ShowWeaponPopup);
             toWrite.WriteLine("WeaponPopupSeconds=" + m_WeaponPopupSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-            File.WriteAllText(createdFilepath, toWrite.ToString());
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(createdFilepath));
+                File.WriteAllText(createdFilepath, toWrite.ToString());
+            }
+            catch { }
         }
 
         private void ShowCounting(object sender, RoutedEventArgs e)
