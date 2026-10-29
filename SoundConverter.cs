@@ -31,7 +31,7 @@ namespace BoxAverageTracker
                 }
 
                 if (new FileInfo(tmpPath).Length <= 44)
-                    throw new InvalidDataException("aucune piste audio trouvée dans ce fichier");
+                    throw new InvalidDataException("no audio track found in this file");
 
                 File.Move(tmpPath, outputPath);
                 return outputPath;

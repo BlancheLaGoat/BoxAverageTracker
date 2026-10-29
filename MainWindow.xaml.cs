@@ -463,6 +463,7 @@ namespace BoxAverageTracker
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             ListMaps.ContextMenu = ContextMenu = (ContextMenu)Resources["MainMenu"];
+            AppPaths.Initialize();
             LoadApplicationConfig();
 
             Updater.CleanupPreviousUpdate();
@@ -508,8 +509,7 @@ namespace BoxAverageTracker
             return new string(weaponName.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
         }
 
-        public static string SoundsDirectory =>
-            Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "sounds");
+        public static string SoundsDirectory => AppPaths.SoundsDirectory;
 
         /// <summary>Dossiers de sons des armes de la box (Teddy bear exclu) : thundergun, raygun, chinalake...</summary>
         public static IEnumerable<(string Weapon, string Folder)> WeaponSoundFolders =>
@@ -533,8 +533,7 @@ namespace BoxAverageTracker
         {
             try
             {
-                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                string folder = Path.Combine(Path.GetDirectoryName(exePath), "sounds", folderName);
+                string folder = Path.Combine(SoundsDirectory, folderName);
                 if (!Directory.Exists(folder)) return false;
                 var files = Directory.GetFiles(folder, "*.wav");
                 if (files.Length == 0) return false;
@@ -551,8 +550,7 @@ namespace BoxAverageTracker
         {
             try
             {
-                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                string soundsDir = Path.Combine(Path.GetDirectoryName(exePath), "sounds");
+                string soundsDir = SoundsDirectory;
 
                 string folder = null;
                 foreach (var range in s_TradeSoundRanges)
@@ -1337,7 +1335,8 @@ namespace BoxAverageTracker
 
         private void ExportGame()
         {
-            string currentDir = Directory.GetCurrentDirectory();
+            string currentDir = AppPaths.GamesDirectory;
+            Directory.CreateDirectory(currentDir);
             string filename = SelectedMap + "_" + (DateTime.Now.ToString().Replace("/", "_").Replace(":", "-")) + ".txt";
             string createdFilepath = Path.Combine(currentDir, filename);
 
@@ -1364,7 +1363,11 @@ namespace BoxAverageTracker
 
         private void LoadGame()
         {
-            var openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            var openFileDialog = new System.Windows.Forms.OpenFileDialog
+            {
+                InitialDirectory = AppPaths.GamesDirectory,
+                Filter = "Saved games (Saved_*.txt)|Saved_*.txt|Text files (*.txt)|*.txt|All files|*.*"
+            };
             if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
             string[] fileText = File.ReadAllLines(openFileDialog.FileName);
@@ -1410,7 +1413,8 @@ namespace BoxAverageTracker
 
         private void SaveGame()
         {
-            string currentDir = Directory.GetCurrentDirectory();
+            string currentDir = AppPaths.GamesDirectory;
+            Directory.CreateDirectory(currentDir);
             string fileName = "Saved_" + SelectedMap + "_" + (DateTime.Now.ToString().Replace("/", "_").Replace(":", "-")) + ".txt";
             string createdFilePath = Path.Combine(currentDir, fileName);
 
@@ -1638,6 +1642,16 @@ namespace BoxAverageTracker
             System.Windows.Forms.MessageBox.Show("Version 2.0 (build " + Updater.LocalBuild + ")", "About", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
         }
 
+        private void OpenDataFolderClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Directory.CreateDirectory(AppPaths.DataDirectory);
+                Process.Start(new ProcessStartInfo("explorer.exe", "\"" + AppPaths.DataDirectory + "\"") { UseShellExecute = true });
+            }
+            catch { }
+        }
+
         private void ConvertSoundsClick(object sender, RoutedEventArgs e)
         {
             new ConvertSoundsWindow { Owner = this, Topmost = true }.ShowDialog();
@@ -1684,7 +1698,7 @@ namespace BoxAverageTracker
 
         private void LoadApplicationConfig()
         {
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "ApplicationConfig.txt");
+            string filePath = AppPaths.ConfigPath;
             if (!File.Exists(filePath)) return;
 
             string[] fileText = File.ReadAllLines(filePath);
@@ -1778,7 +1792,7 @@ namespace BoxAverageTracker
 
         private void SaveApplicationConfig()
         {
-            string createdFilepath = Path.Combine(Directory.GetCurrentDirectory(), "ApplicationConfig.txt");
+            string createdFilepath = AppPaths.ConfigPath;
             var toWrite = new StringWriter();
 
             toWrite.WriteLine("BoxHitsFont=" + BoxHitsFontFamily.Source);
@@ -1936,7 +1950,7 @@ namespace BoxAverageTracker
             }
             var top = _worstTrades.OrderByDescending(x => x).Take(TradesDisplayCount).ToList();
             var parts = top.Select((v, i) => $"#{i + 1}: {v}");
-            WorstTradesString = " Pires trades : " + string.Join(" | ", parts);
+            WorstTradesString = " Worst trades : " + string.Join(" | ", parts);
         }
 
         private void DisplayWorstTrades()
@@ -1944,8 +1958,8 @@ namespace BoxAverageTracker
             if (_worstTrades.Count == 0)
             {
                 System.Windows.Forms.MessageBox.Show(
-                    "Aucun trade enregistré pour cette game.",
-                    "3 pires trades", System.Windows.Forms.MessageBoxButtons.OK,
+                    "No trades recorded for this game yet.",
+                    "Worst trades", System.Windows.Forms.MessageBoxButtons.OK,
                     System.Windows.Forms.MessageBoxIcon.Information);
                 return;
             }
@@ -1956,7 +1970,7 @@ namespace BoxAverageTracker
 
             System.Windows.Forms.MessageBox.Show(
                 sb.ToString(),
-                "3 pires trades", System.Windows.Forms.MessageBoxButtons.OK,
+                "Worst trades", System.Windows.Forms.MessageBoxButtons.OK,
                 System.Windows.Forms.MessageBoxIcon.Information);
         }
 
@@ -1974,4 +1988,4 @@ namespace BoxAverageTracker
             WeaponAverages = weaponAverages;
         }
     }
-}
+}

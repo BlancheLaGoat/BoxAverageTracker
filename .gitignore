@@ -1,0 +1,6 @@
+# Fichiers perso : ne pas publier sur GitHub
+# (les sons et le config vivent maintenant dans %AppData%\BoxAverageTracker)
+bin/Release/sounds/
+bin/Debug/sounds/
+bin/*/ApplicationConfig.txt
+bin/*/Saved_*.txt

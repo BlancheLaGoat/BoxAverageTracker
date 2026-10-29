@@ -57,6 +57,7 @@
             <MenuItem Header="Save game" Click="SaveGame" IsCheckable="False"/>
             <MenuItem Header="Export stats" Click="RightClick_Export" IsCheckable="False"/>
             <MenuItem Header="Convert sounds..." Click="ConvertSoundsClick" IsCheckable="False"/>
+            <MenuItem Header="Open data folder..." Click="OpenDataFolderClick" IsCheckable="False"/>
             <MenuItem Header="Check for updates..." Click="CheckForUpdatesClick" IsCheckable="False"/>
             <MenuItem Header="About" Click="AboutClick" IsCheckable="False"/>
             <MenuItem Header="Exit" Click="RightClick_Exit" IsCheckable="False"/>

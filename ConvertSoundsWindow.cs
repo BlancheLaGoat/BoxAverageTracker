@@ -48,7 +48,7 @@ namespace BoxAverageTracker
             // Destination
             var destPanel = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
             DockPanel.SetDock(destPanel, Dock.Top);
-            destPanel.Children.Add(new TextBlock { Text = "Dossier de destination :", Foreground = s_Fg, Margin = new Thickness(0, 0, 0, 4) });
+            destPanel.Children.Add(new TextBlock { Text = "Destination folder:", Foreground = s_Fg, Margin = new Thickness(0, 0, 0, 4) });
             m_Destination = new ComboBox { ItemsSource = BuildDestinations(), SelectedIndex = 0, Height = 26 };
             destPanel.Children.Add(m_Destination);
             root.Children.Add(destPanel);
@@ -56,9 +56,9 @@ namespace BoxAverageTracker
             // Boutons du bas
             var bottom = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
             DockPanel.SetDock(bottom, Dock.Bottom);
-            m_PickButton = new Button { Content = "Choisir des fichiers...", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 0, 8, 0) };
+            m_PickButton = new Button { Content = "Choose files...", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 0, 8, 0) };
             m_PickButton.Click += (s, e) => PickFiles();
-            var openButton = new Button { Content = "Ouvrir le dossier", Padding = new Thickness(10, 4, 10, 4) };
+            var openButton = new Button { Content = "Open folder", Padding = new Thickness(10, 4, 10, 4) };
             openButton.Click += (s, e) => OpenSelectedFolder();
             bottom.Children.Add(m_PickButton);
             bottom.Children.Add(openButton);
@@ -75,7 +75,7 @@ namespace BoxAverageTracker
                 Background = Brushes.Transparent,
                 Child = new TextBlock
                 {
-                    Text = "Glisse tes fichiers ici\n(mp3, mp4, m4a, wav, wma, aac, mov...)",
+                    Text = "Drop your files here\n(mp3, mp4, m4a, wav, wma, aac, mov...)",
                     Foreground = s_Fg,
                     TextAlignment = TextAlignment.Center,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -104,8 +104,8 @@ namespace BoxAverageTracker
             PreviewDragOver += OnDragOver;
             PreviewDrop += OnDrop;
 
-            Log("Choisis l'arme, puis glisse un ou plusieurs fichiers.");
-            Log("Ils seront convertis en .wav dans sounds\\<dossier>.");
+            Log("Pick a weapon, then drop one or more files.");
+            Log("They will be converted to .wav into sounds\\<folder>.");
         }
 
         private static List<Destination> BuildDestinations()
@@ -116,7 +116,7 @@ namespace BoxAverageTracker
                 .ToList();
 
             list.AddRange(MainWindow.TradeSoundFolders
-                .Select(f => new Destination { Label = $"Trade : {f}   (sounds\\{f})", Folder = f }));
+                .Select(f => new Destination { Label = $"Trade: {f}   (sounds\\{f})", Folder = f }));
 
             return list;
         }
@@ -143,8 +143,8 @@ namespace BoxAverageTracker
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Multiselect = true,
-                Title = "Fichiers audio ou vidéo à convertir",
-                Filter = "Audio / vidéo|*.mp3;*.mp4;*.m4a;*.aac;*.wav;*.wma;*.mov;*.m4v;*.3gp;*.flac|Tous les fichiers|*.*"
+                Title = "Audio or video files to convert",
+                Filter = "Audio / video|*.mp3;*.mp4;*.m4a;*.aac;*.wav;*.wma;*.mov;*.m4v;*.3gp;*.flac|All files|*.*"
             };
             if (dialog.ShowDialog(this) == true)
                 await ConvertFiles(dialog.FileNames);
@@ -171,11 +171,11 @@ namespace BoxAverageTracker
                 }
                 catch (Exception ex)
                 {
-                    Log($"   ÉCHEC : {ex.Message}");
+                    Log($"   FAILED: {ex.Message}");
                 }
             }
 
-            Log($"Terminé : {ok}/{files.Length} fichier(s) dans sounds\\{Path.GetFileName(folder)}");
+            Log($"Done: {ok}/{files.Length} file(s) in sounds\\{Path.GetFileName(folder)}");
             m_Busy = false;
             m_PickButton.IsEnabled = true;
             m_Destination.IsEnabled = true;
@@ -190,7 +190,7 @@ namespace BoxAverageTracker
             }
             catch (Exception ex)
             {
-                Log("Impossible d'ouvrir le dossier : " + ex.Message);
+                Log("Could not open the folder: " + ex.Message);
             }
         }
 

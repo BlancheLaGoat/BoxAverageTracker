@@ -44,7 +44,7 @@ namespace BoxAverageTracker
             if (LocalBuild == 0)
             {
                 if (!silentIfUpToDate)
-                    MessageBox.Show(owner, "Version compilée en local (build 0) : la mise à jour automatique est désactivée.", "Updates", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(owner, "Local build (build 0): automatic updates are disabled.", "Updates", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -64,20 +64,20 @@ namespace BoxAverageTracker
             {
                 // Pas d'internet, GitHub indisponible... on ne gêne pas l'utilisateur au démarrage
                 if (!silentIfUpToDate)
-                    MessageBox.Show(owner, "Impossible de vérifier les mises à jour (pas de connexion à GitHub ?).", "Updates", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(owner, "Could not check for updates (no connection to GitHub?).", "Updates", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (remoteBuild <= LocalBuild)
             {
                 if (!silentIfUpToDate)
-                    MessageBox.Show(owner, $"Tu as déjà la dernière version (build {LocalBuild}).", "Updates", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(owner, $"You already have the latest version (build {LocalBuild}).", "Updates", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             var answer = MessageBox.Show(owner,
-                $"Une nouvelle version est disponible (build {remoteBuild}, tu as le build {LocalBuild}).\n\nMettre à jour maintenant ? L'appli va se relancer.",
-                "Mise à jour disponible", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                $"A new version is available (build {remoteBuild}, you have build {LocalBuild}).\n\nUpdate now? The app will restart.",
+                "Update available", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (answer != MessageBoxResult.Yes) return;
 
@@ -90,7 +90,7 @@ namespace BoxAverageTracker
                 }
 
                 if (new FileInfo(NewExePath).Length < 50 * 1024)
-                    throw new InvalidDataException("Fichier téléchargé trop petit.");
+                    throw new InvalidDataException("Downloaded file is too small.");
 
                 // Windows autorise à renommer un exe en cours d'exécution, mais pas à l'écraser
                 if (File.Exists(OldExePath)) File.Delete(OldExePath);
@@ -107,7 +107,7 @@ namespace BoxAverageTracker
                 }
                 catch { }
 
-                MessageBox.Show(owner, "La mise à jour a échoué :\n" + ex.Message, "Updates", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(owner, "The update failed:\n" + ex.Message, "Updates", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
