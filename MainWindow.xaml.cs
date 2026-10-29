@@ -485,30 +485,45 @@ namespace BoxAverageTracker
             bool isPap = papSet != null && papSet.Contains(changedId);
             if (isPap) return;
 
-            // Son Ray Gun
-            if (SoundsEnabled && string.Equals(weaponName, "Ray Gun", StringComparison.OrdinalIgnoreCase))
-                PlaySpecialWeaponSound("raygun");
+            if (!SoundsEnabled) return;
 
-            // Son de trade pour toutes les armes tradées (seulement si SetupFinished et sons activés)
-            if (SetupFinished && SoundsEnabled && m_WeaponsBeingTraded.Any(x => string.Equals(x, weaponName, StringComparison.OrdinalIgnoreCase)))
+            // Son perso de l'arme : sounds/<nom de l'arme>/ (ex: sounds/thundergun, sounds/raygun).
+            // S'il existe et contient des .wav, il passe en priorité sur le son de trade.
+            if (PlaySpecialWeaponSound(GetWeaponSoundFolderName(weaponName)))
+                return;
+
+            // Sinon, son de trade pour les armes tradées (seulement si SetupFinished)
+            if (SetupFinished && m_WeaponsBeingTraded.Any(x => string.Equals(x, weaponName, StringComparison.OrdinalIgnoreCase)))
                 PlayTradeSound(GetCurrentTradeHits());
         }
 
-        private void PlaySpecialWeaponSound(string folderName)
+        /// <summary>
+        /// Nom du dossier de sons d'une arme : en minuscules, sans espaces ni caractères spéciaux.
+        /// "Thundergun" -> thundergun, "Ray Gun" -> raygun, "Wunderwaffe DG-2" -> wunderwaffedg2,
+        /// "Winter's howl" -> wintershowl, "31-79 Jgb 215" -> 3179jgb215, "China Lake" -> chinalake
+        /// </summary>
+        private static string GetWeaponSoundFolderName(string weaponName)
+        {
+            return new string(weaponName.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+        }
+
+        /// <returns>true si un son a été joué</returns>
+        private bool PlaySpecialWeaponSound(string folderName)
         {
             try
             {
                 string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string folder = Path.Combine(Path.GetDirectoryName(exePath), "sounds", folderName);
-                if (!Directory.Exists(folder)) return;
+                if (!Directory.Exists(folder)) return false;
                 var files = Directory.GetFiles(folder, "*.wav");
-                if (files.Length == 0) return;
+                if (files.Length == 0) return false;
                 string chosen = files[_random.Next(files.Length)];
                 var player = new System.Media.SoundPlayer(chosen);
                 player.Load();
                 player.Play();
+                return true;
             }
-            catch { }
+            catch { return false; }
         }
 
         private void PlayTradeSound(int tradeHits)
@@ -1159,9 +1174,7 @@ namespace BoxAverageTracker
                         _bestTrades.Add(tradeHits);
                         _bestTrades = _bestTrades.OrderBy(x => x).ToList();
                         UpdateBestTradesString();
-
-                        if (SoundsEnabled)
-                            PlayTradeSound(tradeHits);
+                        // Le son (arme perso ou trade) est déjà joué dans CheckTradeSoundOnInventoryChange()
                     }
                 }
             }

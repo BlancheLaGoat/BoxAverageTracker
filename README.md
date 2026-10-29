@@ -58,6 +58,21 @@ sounds/
 
 Vous pouvez mettre autant de `.wav` que tu veux dans chaque dossier, un sera choisi au hasard.
 
+### Sons par arme
+
+Tu peux aussi donner un son à une arme précise : crée un dossier `sounds/<nom de l'arme>/` (en minuscules, sans espaces ni caractères spéciaux) et mets-y des `.wav`. Quand tu choppes cette arme, son son passe **en priorité** sur le son de trade.
+
+```
+sounds/
+  thundergun/     → Thundergun
+  raygun/         → Ray Gun
+  wunderwaffedg2/ → Wunderwaffe DG-2
+  wintershowl/    → Winter's howl
+  3179jgb215/     → 31-79 Jgb 215 (Baby gun)
+  chinalake/      → China Lake
+  gersh/  qed/  wavegun/  scavenger/  vr11/  m72law/ ...
+```
+
 ---
 
 ## Maps supportées
