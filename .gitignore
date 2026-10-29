@@ -4,3 +4,5 @@ bin/Release/sounds/
 bin/Debug/sounds/
 bin/*/ApplicationConfig.txt
 bin/*/Saved_*.txt
+bin/*/*.exe.old
+bin/*/*.exe.new
