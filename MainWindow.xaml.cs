@@ -403,6 +403,20 @@ namespace BoxAverageTracker
         private List<int> m_YellowTmpInventory = new List<int>();
         private List<int> m_GreenTmpInventory = new List<int>();
 
+        // Box hit en attente par joueur (white, blue, yellow, green) : l'arme de la box ne peut aller qu'à celui qui l'a tapée
+        private const double c_BoxWeaponWindowSeconds = 20;
+        private readonly DateTime?[] m_PendingBoxHit = new DateTime?[4];
+        private readonly bool[] m_LastHitters = new bool[4];
+        private readonly int[] m_DownsAtHit = new int[4];
+
+        private static readonly int[][] s_PlayerWeaponSlots =
+        {
+            new[] { Constants.C_WHITEWEAPONSLOT1, Constants.C_WHITEWEAPONSLOT2, Constants.C_WHITEWEAPONSLOT3, Constants.C_WHITEWEAPONSLOT4, Constants.C_WHITEWEAPONSLOT5, Constants.C_WHITEWEAPONSLOT6, Constants.C_WHITEWEAPONSLOT7, Constants.C_WHITEWEAPONSLOT8, Constants.C_WHITEWEAPONSLOT9 },
+            new[] { Constants.C_BLUEWEAPONSLOT1, Constants.C_BLUEWEAPONSLOT2, Constants.C_BLUEWEAPONSLOT3, Constants.C_BLUEWEAPONSLOT4, Constants.C_BLUEWEAPONSLOT5, Constants.C_BLUEWEAPONSLOT6, Constants.C_BLUEWEAPONSLOT7, Constants.C_BLUEWEAPONSLOT8, Constants.C_BLUEWEAPONSLOT9 },
+            new[] { Constants.C_YELLOWWEAPONSLOT1, Constants.C_YELLOWWEAPONSLOT2, Constants.C_YELLOWWEAPONSLOT3, Constants.C_YELLOWWEAPONSLOT4, Constants.C_YELLOWWEAPONSLOT5, Constants.C_YELLOWWEAPONSLOT6, Constants.C_YELLOWWEAPONSLOT7, Constants.C_YELLOWWEAPONSLOT8, Constants.C_YELLOWWEAPONSLOT9 },
+            new[] { Constants.C_GREENWEAPONSLOT1, Constants.C_GREENWEAPONSLOT2, Constants.C_GREENWEAPONSLOT3, Constants.C_GREENWEAPONSLOT4, Constants.C_GREENWEAPONSLOT5, Constants.C_GREENWEAPONSLOT6, Constants.C_GREENWEAPONSLOT7, Constants.C_GREENWEAPONSLOT8, Constants.C_GREENWEAPONSLOT9 }
+        };
+
         private static readonly HashSet<string> s_SpecialWeapons = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Thundergun", "Matrioshka", "Crossbow", "Ballistic Knife", "Scavenger", "VR-11",
@@ -472,20 +486,8 @@ namespace BoxAverageTracker
             await UpdateTracking();
         }
 
-        private void CheckTradeSoundOnInventoryChange()
+        private void PlayGottenWeaponSound(string weaponName)
         {
-            var dict = GetWeaponsDictionary();
-            if (dict == null) return;
-
-            int changedId = GetChangedWeaponId();
-            if (changedId == -1) return;
-
-            if (!dict.TryGetValue(changedId, out string weaponName)) return;
-
-            var papSet = GetPapSetForSelectedMap();
-            bool isPap = papSet != null && papSet.Contains(changedId);
-            if (isPap) return;
-
             if (!SoundsEnabled) return;
 
             // Son perso de l'arme : sounds/<nom de l'arme>/ (ex: sounds/thundergun, sounds/raygun).
@@ -677,6 +679,16 @@ namespace BoxAverageTracker
                                             m_YellowTmpInventory = new List<int>(m_YellowInventory);
                                             m_GreenTmpInventory = new List<int>(m_GreenInventory);
 
+                                            // Qui a tapé la box : seul ce joueur pourra "obtenir" l'arme de ce hit
+                                            var hitters = new[] { whiteHasHit, blueHasHit, yellowHasHit, greenHasHit };
+                                            var downs = new[] { whiteDownsCount, blueDownsCount, yellowDownsCount, greenDownsCount };
+                                            for (int p = 0; p < 4; p++)
+                                            {
+                                                m_LastHitters[p] = hitters[p];
+                                                m_DownsAtHit[p] = downs[p];
+                                                if (hitters[p]) m_PendingBoxHit[p] = DateTime.UtcNow;
+                                            }
+
                                             if (SetupFinished)
                                             {
                                                 AddBoxHitForEachWeapon(whiteHasHit, blueHasHit, yellowHasHit, greenHasHit);
@@ -714,11 +726,17 @@ namespace BoxAverageTracker
 
                                     if (inventoryHasChanged)
                                     {
-                                        CheckTradeSoundOnInventoryChange();
-                                        if (SetupFinished)
+                                        // Seule une arme prise dans la box par le joueur qui l'a tapée compte.
+                                        // Les armes rendues après un revive, un coéquipier qui a déjà une Ray Gun, etc. sont ignorés.
+                                        string boxWeapon = FindWeaponTakenFromBox();
+                                        if (boxWeapon != null)
                                         {
-                                            UpdateChangedWeapon();
-                                            mustUpdate = true;
+                                            PlayGottenWeaponSound(boxWeapon);
+                                            if (SetupFinished)
+                                            {
+                                                RecordGottenWeapon(boxWeapon);
+                                                mustUpdate = true;
+                                            }
                                         }
                                         UpdateInventories();
                                     }
@@ -728,24 +746,28 @@ namespace BoxAverageTracker
                                         isBoxRandomizing = false;
                                         if (SetupFinished)
                                         {
+                                            if (m_LastHitters[0] && whiteDownsCount == m_DownsAtHit[0])
                                             foreach (var diff in m_WhiteTmpInventory.Where(p => !m_WhiteInventory.Contains(p)))
                                             {
                                                 AddBoxHitForSpecificWeapon(diff);
                                                 mustUpdate = true;
                                             }
 
+                                            if (m_LastHitters[1] && blueDownsCount == m_DownsAtHit[1])
                                             foreach (var diff in m_BlueTmpInventory.Where(p => !m_BlueInventory.Contains(p)))
                                             {
                                                 AddBoxHitForSpecificWeapon(diff);
                                                 mustUpdate = true;
                                             }
 
+                                            if (m_LastHitters[2] && yellowDownsCount == m_DownsAtHit[2])
                                             foreach (var diff in m_YellowTmpInventory.Where(p => !m_YellowInventory.Contains(p)))
                                             {
                                                 AddBoxHitForSpecificWeapon(diff);
                                                 mustUpdate = true;
                                             }
 
+                                            if (m_LastHitters[3] && greenDownsCount == m_DownsAtHit[3])
                                             foreach (var diff in m_GreenTmpInventory.Where(p => !m_GreenInventory.Contains(p)))
                                             {
                                                 AddBoxHitForSpecificWeapon(diff);
@@ -820,6 +842,7 @@ namespace BoxAverageTracker
 
         private void ResetTracking()
         {
+            for (int p = 0; p < 4; p++) { m_PendingBoxHit[p] = null; m_LastHitters[p] = false; }
             SetBoxHits(0);
             SetCurrentBoxHits(0);
             SetCurrentTradeHits(0);
@@ -1157,104 +1180,73 @@ namespace BoxAverageTracker
                 Constants.C_GREENAMMOSSLOT1_2, Constants.C_GREENAMMOSSLOT2_2, Constants.C_GREENAMMOSSLOT3_2);
         }
 
-        private void UpdateChangedWeapon()
+        /// <summary>
+        /// Cherche une arme qu'un joueur vient de prendre dans la box : il doit avoir tapé la box dans les
+        /// dernières secondes, et l'arme ne doit pas être dans l'inventaire qu'il avait au moment du hit.
+        /// Ignore donc : armes rendues après un revive, coéquipiers qui ont déjà l'arme, wall buys, PaP.
+        /// </summary>
+        /// <returns>Le nom de l'arme, ou null</returns>
+        private string FindWeaponTakenFromBox()
         {
-            int changedWeaponId = GetChangedWeaponId();
-            if (changedWeaponId == -1) return;
-
             var dict = GetWeaponsDictionary();
-            if (dict != null && dict.ContainsKey(changedWeaponId))
+            if (dict == null) return null;
+            var papSet = GetPapSetForSelectedMap();
+
+            for (int p = 0; p < 4; p++)
             {
-                var papSet = GetPapSetForSelectedMap();
-                bool isPap = papSet != null && papSet.Contains(changedWeaponId);
-
-                if (!isPap)
+                if (m_PendingBoxHit[p] == null) continue;
+                if ((DateTime.UtcNow - m_PendingBoxHit[p].Value).TotalSeconds > c_BoxWeaponWindowSeconds)
                 {
-                    string gottenWeapon = dict[changedWeaponId];
-                    if (!m_WeaponsToNotCount.Any(x => x == gottenWeapon))
-                    {
-                        m_WeaponsGotten[gottenWeapon].Add(GetBoxHits());
-                        ShowWeaponPopupFor(gottenWeapon);
-                    }
+                    m_PendingBoxHit[p] = null;
+                    continue;
+                }
 
-                    if (m_WeaponsBeingTraded.Any(x => x == gottenWeapon))
-                    {
-                        int tradeHits = GetCurrentTradeHits();
-                        SetLastTradeHits(tradeHits);
-                        SetCurrentTradeHits(0);
-                        int newTradeCount = GetTotalTradeCount() + 1;
-                        SetTotalTradeCount(newTradeCount);
+                var before = GetTmpInventory(p);
+                foreach (int id in ReadInts(s_PlayerWeaponSlots[p]))
+                {
+                    if (before.Contains(id)) continue;
+                    if (!dict.TryGetValue(id, out string name)) continue;
+                    if (papSet != null && papSet.Contains(id)) continue;
 
-                        _worstTrades.Add(tradeHits);
-                        _worstTrades = _worstTrades.OrderByDescending(x => x).ToList();
-                        UpdateWorstTradesString();
-
-                        _bestTrades.Add(tradeHits);
-                        _bestTrades = _bestTrades.OrderBy(x => x).ToList();
-                        UpdateBestTradesString();
-                        // Le son (arme perso ou trade) est déjà joué dans CheckTradeSoundOnInventoryChange()
-                    }
+                    m_PendingBoxHit[p] = null;
+                    return name;
                 }
             }
-
-            UpdateInventories();
+            return null;
         }
 
-        private int GetChangedWeaponId()
+        private void RecordGottenWeapon(string gottenWeapon)
         {
-            var whiteSlots = new[]
+            if (!m_WeaponsToNotCount.Any(x => x == gottenWeapon))
             {
-                Constants.C_WHITEWEAPONSLOT1, Constants.C_WHITEWEAPONSLOT2, Constants.C_WHITEWEAPONSLOT3,
-                Constants.C_WHITEWEAPONSLOT4, Constants.C_WHITEWEAPONSLOT5, Constants.C_WHITEWEAPONSLOT6,
-                Constants.C_WHITEWEAPONSLOT7, Constants.C_WHITEWEAPONSLOT8, Constants.C_WHITEWEAPONSLOT9
-            };
-
-            var blueSlots = new[]
-            {
-                Constants.C_BLUEWEAPONSLOT1, Constants.C_BLUEWEAPONSLOT2, Constants.C_BLUEWEAPONSLOT3,
-                Constants.C_BLUEWEAPONSLOT4, Constants.C_BLUEWEAPONSLOT5, Constants.C_BLUEWEAPONSLOT6,
-                Constants.C_BLUEWEAPONSLOT7, Constants.C_BLUEWEAPONSLOT8, Constants.C_BLUEWEAPONSLOT9
-            };
-
-            var yellowSlots = new[]
-            {
-                Constants.C_YELLOWWEAPONSLOT1, Constants.C_YELLOWWEAPONSLOT2, Constants.C_YELLOWWEAPONSLOT3,
-                Constants.C_YELLOWWEAPONSLOT4, Constants.C_YELLOWWEAPONSLOT5, Constants.C_YELLOWWEAPONSLOT6,
-                Constants.C_YELLOWWEAPONSLOT7, Constants.C_YELLOWWEAPONSLOT8, Constants.C_YELLOWWEAPONSLOT9
-            };
-
-            var greenSlots = new[]
-            {
-                Constants.C_GREENWEAPONSLOT1, Constants.C_GREENWEAPONSLOT2, Constants.C_GREENWEAPONSLOT3,
-                Constants.C_GREENWEAPONSLOT4, Constants.C_GREENWEAPONSLOT5, Constants.C_GREENWEAPONSLOT6,
-                Constants.C_GREENWEAPONSLOT7, Constants.C_GREENWEAPONSLOT8, Constants.C_GREENWEAPONSLOT9
-            };
-
-            for (int i = 0; i < whiteSlots.Length; i++)
-            {
-                int read = BlackOpsLibrary.ReadInt(whiteSlots[i]);
-                if (m_WhiteInventory[i] != read) return read;
+                m_WeaponsGotten[gottenWeapon].Add(GetBoxHits());
+                ShowWeaponPopupFor(gottenWeapon);
             }
 
-            for (int i = 0; i < blueSlots.Length; i++)
+            if (m_WeaponsBeingTraded.Any(x => x == gottenWeapon))
             {
-                int read = BlackOpsLibrary.ReadInt(blueSlots[i]);
-                if (m_BlueInventory[i] != read) return read;
-            }
+                int tradeHits = GetCurrentTradeHits();
+                SetLastTradeHits(tradeHits);
+                SetCurrentTradeHits(0);
+                int newTradeCount = GetTotalTradeCount() + 1;
+                SetTotalTradeCount(newTradeCount);
 
-            for (int i = 0; i < yellowSlots.Length; i++)
-            {
-                int read = BlackOpsLibrary.ReadInt(yellowSlots[i]);
-                if (m_YellowInventory[i] != read) return read;
-            }
+                _worstTrades.Add(tradeHits);
+                _worstTrades = _worstTrades.OrderByDescending(x => x).ToList();
+                UpdateWorstTradesString();
 
-            for (int i = 0; i < greenSlots.Length; i++)
-            {
-                int read = BlackOpsLibrary.ReadInt(greenSlots[i]);
-                if (m_GreenInventory[i] != read) return read;
+                _bestTrades.Add(tradeHits);
+                _bestTrades = _bestTrades.OrderBy(x => x).ToList();
+                UpdateBestTradesString();
             }
+        }
 
-            return -1;
+        private List<int> GetTmpInventory(int player)
+        {
+            if (player == 0) return m_WhiteTmpInventory;
+            if (player == 1) return m_BlueTmpInventory;
+            if (player == 2) return m_YellowTmpInventory;
+            return m_GreenTmpInventory;
         }
 
         private void UpdateInventories()
